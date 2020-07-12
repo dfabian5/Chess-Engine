@@ -13,7 +13,7 @@
 ////////////////////////////////////////
 // init board
 Board::Board() :
-	totalGridPoints_(0)
+	totalGridPoints_(0), turn_(1)
 {
 	// set up white side
 	pieces_.push_front(Piece::rook(Color::White, make_pair(0, 0)));
@@ -50,38 +50,38 @@ Board::Board() :
 		pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, i)));
 
 	/*
-	//pieces_.push_front(Piece::rook(Color::White, make_pair(0, 0)));
-	//pieces_.push_front(Piece::knight(Color::White, make_pair(0, 1)));
-	//pieces_.push_front(Piece::bishop(Color::White, make_pair(0, 2)));
-	pieces_.push_front(Piece::queen(Color::White, make_pair(4, 4)));
-	pieces_.push_front(Piece::king(Color::White, make_pair(0, 1)));
-	//pieces_.push_front(Piece::bishop(Color::White, make_pair(0, 5)));
-	pieces_.push_front(Piece::knight(Color::White, make_pair(1, 4)));
-	//pieces_.push_front(Piece::rook(Color::White, make_pair(0, 7)));
+	pieces_.push_front(Piece::rook(Color::White, make_pair(0, 0)));
+	pieces_.push_front(Piece::knight(Color::White, make_pair(0, 1)));
+	pieces_.push_front(Piece::bishop(Color::White, make_pair(0, 2)));
+	pieces_.push_front(Piece::queen(Color::White, make_pair(0, 3)));
+	pieces_.push_front(Piece::king(Color::White, make_pair(0, 4)));
+	pieces_.push_front(Piece::bishop(Color::White, make_pair(0, 5)));
+	pieces_.push_front(Piece::knight(Color::White, make_pair(0, 6)));
+	pieces_.push_front(Piece::rook(Color::White, make_pair(0, 7)));
 
-	//pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 0)));
-	//pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 1)));
-	//pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 2)));
-	//pieces_.push_front(Piece::pawn(Color::White, make_pair(3, 3)));
-	//pieces_.push_front(Piece::pawn(Color::White, make_pair(4, 4)));
-	//pieces_.push_front(Piece::pawn(Color::White, make_pair(3, 5)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(4, 6)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(3, 3)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 0)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 1)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 2)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 3)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 4)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 5)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 6)));
+	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 7)));
 
 	pieces_.push_front(Piece::rook(Color::Black, make_pair(SIZE - 1, 0)));
-	//pieces_.push_front(Piece::knight(Color::Black, make_pair(SIZE - 1, 1)));
-	//pieces_.push_front(Piece::bishop(Color::Black, make_pair(SIZE - 1, 2)));
-	//pieces_.push_front(Piece::queen(Color::Black, make_pair(3, 4)));
+	pieces_.push_front(Piece::knight(Color::Black, make_pair(SIZE - 1, 1)));
+	pieces_.push_front(Piece::bishop(Color::Black, make_pair(SIZE - 1, 2)));
+	pieces_.push_front(Piece::queen(Color::Black, make_pair(SIZE - 1, 3)));
 	pieces_.push_front(Piece::king(Color::Black, make_pair(SIZE - 1, 4)));
-	//pieces_.push_front(Piece::bishop(Color::Black, make_pair(SIZE - 1, 5)));
-	//pieces_.push_front(Piece::knight(Color::Black, make_pair(3, 6)));
-	//pieces_.push_front(Piece::rook(Color::Black, make_pair(SIZE - 1, 7)));
+	pieces_.push_front(Piece::bishop(Color::Black, make_pair(SIZE - 1, 5)));
+	pieces_.push_front(Piece::knight(Color::Black, make_pair(SIZE - 1, 6)));
+	pieces_.push_front(Piece::rook(Color::Black, make_pair(SIZE - 1, 7)));
 
-	//pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 0)));
-	//pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 1)));
-	//pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 2)));
-	//pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 3)));
-	//pieces_.push_front(Piece::pawn(Color::Black, make_pair(5, 4)));
+	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 0)));
+	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 1)));
+	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 2)));
+	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 3)));
+	pieces_.push_front(Piece::pawn(Color::Black, make_pair(5, 4)));
 	pieces_.push_front(Piece::pawn(Color::Black, make_pair(4, 3)));
 	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 5)));
 	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 7)));
@@ -107,6 +107,93 @@ Board::Board(const Board &board)
 	pieces_ = board.pieces_;
 	kingPos_[0] = board.kingPos_[0];
 	kingPos_[1] = board.kingPos_[1];
+}
+
+////////////////////////////////////////
+// save game to text file to be loaded later
+void Board::save_game(const string &game) const
+{
+	// create file stream
+	ofstream out(game);
+
+	out << turn_ << endl;
+	for (const Piece &p : pieces_)
+		out << p.get_rep() << ' '
+			<< p.get_position().first << ' ' << p.get_position().second << ' '
+			<< int(p.get_color()) << ' '
+			<< p.has_moved() << endl;
+
+	// close stream
+	out.close();
+}
+
+////////////////////////////////////////
+// load game from file
+void Board::load_game(const string &game)
+{
+	// create file stream
+	ifstream in(game);
+
+	// get turn number
+	string str;
+	in >> str;
+	turn_ = stoi(str) % 2;
+
+	// get pieces
+	pieces_.clear();
+	while (!in.eof())
+	{
+		// get piece rep
+		in >> str;
+		char rep = str.front();
+
+		// get position
+		in >> str;
+		int first = stoi(str);
+		in >> str;
+		int second = stoi(str);
+
+		// get color
+		in >> str;
+		Color color = Color(stoi(str));
+
+		// get has moved
+		in >> str;
+		bool hasMoved = stoi(str);
+
+		// add piece to list
+		switch (rep)
+		{
+		case KING_REP:
+			pieces_.push_back(Piece::king(color, make_pair(first, second), hasMoved));
+			kingPos_[int(color)] = make_pair(first, second);
+			break;
+		case QUEEN_REP:
+			pieces_.push_back(Piece::queen(color, make_pair(first, second), hasMoved));
+			break;
+		case KNIGHT_REP:
+			pieces_.push_back(Piece::knight(color, make_pair(first, second), hasMoved));
+			break;
+		case BISHOP_REP:
+			pieces_.push_back(Piece::bishop(color, make_pair(first, second), hasMoved));
+			break;
+		case ROOK_REP:
+			pieces_.push_back(Piece::rook(color, make_pair(first, second), hasMoved));
+			break;
+		case PAWN_REP:
+			pieces_.push_back(Piece::pawn(color, make_pair(first, second), hasMoved));
+			break;
+		case EMPTY_REP:
+			pieces_.push_back(Piece::empty(color, make_pair(first, second), hasMoved));
+			break;
+		}
+	}
+
+	// update moves
+	update_move_set();
+
+	// close stream
+	in.close();
 }
 
 ////////////////////////////////////////
@@ -152,18 +239,18 @@ void Board::print() const
 // check if a player is in check
 bool Board::player_in_check(const Color &color) const
 {
+	// create blank position to check with
+	Position blank(-1, -1);
+
 	// pieces that are closest to the king in each direction
 	// direction elements: 0 = up, 1 = down, 2 = left, 3 = right
-	//					   4 = up left, 5 = up right, 6 = down left, 7 = down right
+	//		4 = up left, 5 = up right, 6 = down left, 7 = down right
 	vector<Piece> direction(8);
 	for (int i = 0; i < 8; ++i)
-		direction.push_back(Piece::empty(Color::Empty, Position(-1, -1)));
+		direction[i] = Piece::empty(Color::Empty, blank);
 
 	// get king int
 	int kingNum = int(color);
-
-	// create blank position to check with
-	Position blank(-1, -1);
 
 	// go through all pieces
 	for (const Piece &p : pieces_)
@@ -175,56 +262,56 @@ bool Board::player_in_check(const Color &color) const
 			if (kingPos_[kingNum].second == piecePos.second)
 			{
 				// check up
-				if ((piecePos.first < direction[0].get_position().first && piecePos.first > kingPos_[kingNum].first) ||
-					direction[0].get_position() == blank)
+				if ((piecePos.first < direction[0].get_position().first || direction[0].get_position() == blank) &&
+					piecePos.first > kingPos_[kingNum].first)
 					direction[0] = p;
 				// check down
-				else if ((piecePos.first > direction[1].get_position().first && piecePos.first < kingPos_[kingNum].first) ||
-						 direction[1].get_position() == blank)
+				else if ((piecePos.first > direction[1].get_position().first || direction[1].get_position() == blank) &&
+						 piecePos.first < kingPos_[kingNum].first)
 					direction[1] = p;
 			}
 			// check left and right
 			else if (kingPos_[kingNum].first == piecePos.first)
 			{
 				// check left
-				if ((piecePos.second > direction[2].get_position().second && piecePos.second < kingPos_[kingNum].second) ||
-					 direction[2].get_position() == blank)
+				if ((piecePos.second > direction[2].get_position().second || direction[2].get_position() == blank) &&
+					piecePos.second < kingPos_[kingNum].second)
 					direction[2] = p;
 				// check right
-				else if ((piecePos.second < direction[3].get_position().second && piecePos.second > kingPos_[kingNum].second) ||
-						  direction[3].get_position() == blank)
+				else if ((piecePos.second < direction[3].get_position().second || direction[3].get_position() == blank) &&
+						 piecePos.second > kingPos_[kingNum].second)
 					direction[3] = p;
 			}
 			// check up left and down right
-			else if ((kingPos_[kingNum].second - piecePos.second) / (kingPos_[kingNum].first - piecePos.first) == -1) // check slope 
+			else if (double(kingPos_[kingNum].second - piecePos.second) / double(kingPos_[kingNum].first - piecePos.first) == -1) // check slope 
 			{
 				// check up left
-				if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[4].get_position()) &&
-					 piecePos.first < kingPos_[kingNum].first) ||
-					direction[4].get_position() == blank)
+				if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[4].get_position()) ||
+					 direction[4].get_position() == blank) &&
+					piecePos.first < kingPos_[kingNum].first)
 					direction[4] = p;
 				// check down right
-				else if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[7].get_position()) &&
-						  piecePos.first > kingPos_[kingNum].first) ||
-						 direction[7].get_position() == blank)
+				else if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[7].get_position()) ||
+						  direction[7].get_position() == blank) &&
+						 piecePos.first > kingPos_[kingNum].first)
 					direction[7] = p;
 			}
 			// check up right and down left
-			else if ((kingPos_[kingNum].second - piecePos.second) / (kingPos_[kingNum].first - piecePos.first) == 1) // check slope
+			else if (double(kingPos_[kingNum].second - piecePos.second) / double(kingPos_[kingNum].first - piecePos.first) == 1) // check slope
 			{
 				// check up right
-				if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[5].get_position()) &&
-					 piecePos.first > kingPos_[kingNum].first) ||
-					direction[5].get_position() == blank)
+				if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[5].get_position()) ||
+					 direction[5].get_position() == blank) &&
+					piecePos.first > kingPos_[kingNum].first)
 					direction[5] = p;
 				// check down left
-				else if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[6].get_position()) &&
-						  piecePos.first < kingPos_[kingNum].first) ||
-						 direction[6].get_position() == blank)
+				else if ((distance(kingPos_[kingNum], piecePos) < distance(kingPos_[kingNum], direction[6].get_position()) ||
+						  direction[6].get_position() == blank) &&
+						 piecePos.first < kingPos_[kingNum].first)
 					direction[6] = p;
 			}
 
-			// check all night positions that can attack the king
+			// check all knight positions that can attack the king
 			if (p.get_rep() == KNIGHT_REP && p.get_color() != color &&
 				 // check up right moves
 				(make_pair(kingPos_[kingNum].first + 2, kingPos_[kingNum].second + 1) == piecePos ||
@@ -239,6 +326,19 @@ bool Board::player_in_check(const Color &color) const
 				 make_pair(kingPos_[kingNum].first - 2, kingPos_[kingNum].second - 1) == piecePos ||
 				 make_pair(kingPos_[kingNum].first - 1, kingPos_[kingNum].second - 2) == piecePos))
 				return true;
+
+			// check white pawn attacks
+			if (p.get_rep() == PAWN_REP && p.get_color() != color && color == Color::Black &&
+				// up left attack
+				piecePos.first + 1 == kingPos_[kingNum].first&&
+				(piecePos.second - 1 == kingPos_[kingNum].second || piecePos.second + 1 == kingPos_[kingNum].second))
+				return true;
+			// check black pawn attacks
+			else if (p.get_rep() == PAWN_REP && p.get_color() != color && color == Color::White &&
+					 // up left attack
+					 piecePos.first - 1 == kingPos_[kingNum].first &&
+					 (piecePos.second - 1 == kingPos_[kingNum].second || piecePos.second + 1 == kingPos_[kingNum].second))
+				return true;
 		}
 
 	// now go through all directions the king can be attacked and verify it is a piece that can attack
@@ -246,6 +346,7 @@ bool Board::player_in_check(const Color &color) const
 	for (int i = 0; i < 4; ++i)
 		if ((direction[i].get_rep() == ROOK_REP || direction[i].get_rep() == QUEEN_REP) && direction[i].get_color() != color)
 			return true;
+
 	// check bishop attacking directions
 	for (int i = 4; i < 8; ++i)
 		if ((direction[i].get_rep() == BISHOP_REP || direction[i].get_rep() == QUEEN_REP) && direction[i].get_color() != color)
@@ -592,7 +693,7 @@ Node Board::min_max_call(const Board &board, const Color &maximizingColor, const
 					update.make_move(p.get_position(), move);
 
 					// update move set after move completed
-					update_move_set();
+					update.update_move_set();
 
 					value = max(value,
 								Node(min_max(update, depth - 1, alpha, beta, Color::Black),
@@ -621,12 +722,13 @@ Node Board::min_max_call(const Board &board, const Color &maximizingColor, const
 					update.make_move(p.get_position(), move);
 
 					// update move set after move completed
-					update_move_set();
+					update.update_move_set();
 
 					value = min(value,
 								Node(min_max(update, depth - 1, alpha, beta, Color::White),
 									 p.get_position(), move));
-
+					cout << "min: " << value.value_ << ' ' << char(97 + value.current_.second) << value.current_.first + 1 << " -> "
+						<< char(97 + value.desired_.second) << value.desired_.first + 1 << endl << endl;
 					// set beta
 					beta = min(beta, value.value_);
 
@@ -648,7 +750,7 @@ double Board::min_max(const Board &board, int depth, double alpha, double beta, 
 	if (depth == 0 && outcome == 0)
 		return board.favor();
 	else if (outcome == 1 && maximizingColor == Color::White)
-		return std::numeric_limits<double>::min();
+		return -1 * std::numeric_limits<double>::max();
 	else if (outcome == 1 && maximizingColor == Color::Black)
 		return std::numeric_limits<double>::max();
 	else if (outcome == 2)
@@ -718,19 +820,16 @@ double Board::min_max(const Board &board, int depth, double alpha, double beta, 
 // play chess
 void Board::play(const Color &cpu, const int &depth)
 {
-	// turn counter
-	int turn = 1;
-
 	// color of player whos turn it is, begin with white
-	Color color = Color(turn);
+	Color color = Color(turn_);
+
+	// display current board
+	print();
 
 	// game loop, game continues until a player has been checkmated or a stalemate occurs
 	int outcome = 0;
 	while (!outcome)
 	{
-		// display current board
-		print();
-
 		// print out whos turn it is
 		cout << endl;
 		if (color == Color::White)
@@ -780,7 +879,7 @@ void Board::play(const Color &cpu, const int &depth)
 					int row = p.get_position().first, col = p.get_position().second;
 
 					cout << i << ": " << p.get_rep() << ' '
-						<< row + 1 << char(97 + col) << endl;
+						<< char(97 + col) << row + 1 << endl;
 
 					++i;
 				}
@@ -810,17 +909,26 @@ void Board::play(const Color &cpu, const int &depth)
 
 		cout << endl;
 
-		// next turn
-		++turn;
-
-		// flip between white and black turns
-		color = Color(turn % 2);
-
 		// update moves after move played
 		update_move_set();
 
-		// check outcome of previous turn
+		// display current board
+		print();
+
+		// check outcome of turn
 		outcome = end_game(color);
+
+		// next turn
+		++turn_;
+
+		// flip between white and black turns
+		color = Color(turn_ % 2);
+
+		// save game
+		cout << endl << "Save game? (y/n): ";
+		char ans; cin >> ans;
+
+		if (ans == 'y') save_game();
 	}
 
 	if (outcome == 1 && color == Color::Black)

@@ -9,6 +9,11 @@
 // DATE:        7/1/2020
 
 #include "piece.h"
+#include <string>
+#include <fstream>
+
+using std::string;
+using std::ofstream; using std::ifstream;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -38,6 +43,8 @@ public:
 	// methods
 	PieceList get_pieces() const { return pieces_; }
 	void print() const;
+	void save_game(const string &game = "game.txt") const;
+	void load_game(const string &game = "game.txt");
 	bool player_in_check(const Color &color) const;
 	void make_move(const Position &currentPos, const Position &desiredPos);
 	int end_game(const Color &color) const;
@@ -57,6 +64,7 @@ protected:
 	PieceList pieces_; // list of pieces on board, position not listed then its empty
 	Position kingPos_[2]; // king positions for quick access
 	double totalGridPoints_; // for reuse in favor function
+	int turn_; // turn number
 };
 
 #endif // BOARD_H
