@@ -13,17 +13,6 @@ namespace fs = std::filesystem;
 
 int main()
 {
-	auto y = [&](const int &x) {
-		if (x < 0)
-			return -1 * pow(EXPANSION_RATE, abs(x)) * STARTING_BUCKET_SIZE;
-		else
-			return pow(EXPANSION_RATE, x) * STARTING_BUCKET_SIZE;
-	};
-
-	for (int i = -1 * BUCKETS / 2; i < BUCKETS / 2; ++i)
-		cout << i + BUCKETS / 2 << ": " << y(i) << endl;
-
-	return 0;
 	// set up favor network
 	Network favorNet(vector<pair<size_t, Activation *>>
 					 ({ make_pair(384, new Sigmoid), 
@@ -43,31 +32,32 @@ int main()
 	Agent agent(favorNet, policyNet, 0.4, "agent2.txt");
 	agent.load();
 
+	// comment this section out when not training
 	// iterate through all files in directory containing games
-	//for (const auto &file : fs::directory_iterator("data"))
-	//{
-	//	ifstream in(file.path(), ifstream::in);
-	//	while (!in.eof())
-	//	{
-	//		// go through lines until move string begins
-	//		string wholeLine, line;
-	//		while (std::getline(in, line) && line[0] != '1')
-	//			cout << line << endl;
+	for (const auto &file : fs::directory_iterator("data"))
+	{
+		ifstream in(file.path(), ifstream::in);
+		while (!in.eof())
+		{
+			// go through lines until move string begins
+			string wholeLine, line;
+			while (std::getline(in, line) && line[0] != '1')
+				cout << line << endl;
 
-	//		// move string may be spread over multiple lines
-	//		wholeLine += line + ' ';
-	//		while (std::getline(in, line) && line[0] != '[')
-	//		{
-	//			cout << line << endl;
-	//			wholeLine += line + ' ';
-	//		}
+			// move string may be spread over multiple lines
+			wholeLine += line + ' ';
+			while (std::getline(in, line) && line[0] != '[')
+			{
+				cout << line << endl;
+				wholeLine += line + ' ';
+			}
 
-	//		agent.train_from_move_string(wholeLine);
-	//	}
-	//	in.close();
-	//}
+			agent.train_from_move_string(wholeLine);
+		}
+		in.close();
+	}
 
-	//return 0;
+	return 0;
 
 	// cpu vs neural net game
 	// init game
