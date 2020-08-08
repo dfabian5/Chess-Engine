@@ -75,6 +75,7 @@ void Piece::get_moves(Board &board, const vector<Position> &possibleMoves)
 // overloaded assignment
 Piece &Piece::operator=(const Piece &rhs)
 {
+	// dont copy id
 	position_ = rhs.position_;
 	moves_ = rhs.moves_; 
 	color_ = rhs.color_;
@@ -108,7 +109,7 @@ vector<Position> Piece::king_get_possible_moves(const PieceList &pieces) const
 			auto it = cfind(pieces, make_pair(i, j));
 
 			if (in_bounds(i, j) && // open move
-				it == pieces.end())
+				(it == pieces.end() || it->get_rep() == EMPTY_REP))
 				possibleMoves.push_back(make_pair(i, j));
 			else if (in_bounds(i, j) && // check attack
 					 it->get_color() != color_ &&

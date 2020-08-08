@@ -49,48 +49,6 @@ Board::Board() :
 	for (int i = 0; i < SIZE; ++i)
 		pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, i)));
 
-	/*
-	pieces_.push_front(Piece::rook(Color::White, make_pair(0, 0)));
-	pieces_.push_front(Piece::knight(Color::White, make_pair(0, 1)));
-	pieces_.push_front(Piece::bishop(Color::White, make_pair(0, 2)));
-	pieces_.push_front(Piece::queen(Color::White, make_pair(0, 3)));
-	pieces_.push_front(Piece::king(Color::White, make_pair(0, 4)));
-	pieces_.push_front(Piece::bishop(Color::White, make_pair(0, 5)));
-	pieces_.push_front(Piece::knight(Color::White, make_pair(0, 6)));
-	pieces_.push_front(Piece::rook(Color::White, make_pair(0, 7)));
-
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 0)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 1)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 2)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 3)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 4)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 5)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 6)));
-	pieces_.push_front(Piece::pawn(Color::White, make_pair(1, 7)));
-
-	pieces_.push_front(Piece::rook(Color::Black, make_pair(SIZE - 1, 0)));
-	pieces_.push_front(Piece::knight(Color::Black, make_pair(SIZE - 1, 1)));
-	pieces_.push_front(Piece::bishop(Color::Black, make_pair(SIZE - 1, 2)));
-	pieces_.push_front(Piece::queen(Color::Black, make_pair(SIZE - 1, 3)));
-	pieces_.push_front(Piece::king(Color::Black, make_pair(SIZE - 1, 4)));
-	pieces_.push_front(Piece::bishop(Color::Black, make_pair(SIZE - 1, 5)));
-	pieces_.push_front(Piece::knight(Color::Black, make_pair(SIZE - 1, 6)));
-	pieces_.push_front(Piece::rook(Color::Black, make_pair(SIZE - 1, 7)));
-
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 0)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 1)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 2)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 3)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(5, 4)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(4, 3)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 5)));
-	pieces_.push_front(Piece::pawn(Color::Black, make_pair(6, 7)));
-
-	// set king position
-	kingPos_[int(Color::White)] = make_pair(0, 1);
-	// set king position
-	kingPos_[int(Color::Black)] = make_pair(SIZE - 1, 4);
-	*/
 	// calc total grid point value
 	for (int i = 0; i < SIZE; ++i)
 		for (int j = 0; j < SIZE; ++j)
@@ -354,27 +312,6 @@ bool Board::player_in_check(const Color &color) const
 
 	// if nothing can attack the king then its not in check
 	return false;
-
-	/*
-	// get all moves of opponent
-	for (const Piece &p: pieces_)
-		if (p.get_color() != Color::Empty &&
-			p.get_color() != color)
-		{
-			vector<Position> possibleMoves = p.get_possible_moves(pieces_);
-
-			// check if any moves match kings pos
-			for (const Position &p : possibleMoves)
-				if (color == Color::Black &&
-					p == kingPos_[int(Color::Black)])
-					return true;
-				else if (color == Color::White &&
-						 p == kingPos_[int(Color::White)])
-					return true;
-		}
-
-	return false;
-	*/
 }
 
 ////////////////////////////////////////
@@ -395,6 +332,9 @@ void Board::make_move(const Position &currentPos, const Position &desiredPos)
 			pieces_.erase(it);
 			break;
 		}
+
+	// get piece, iterator may have gone stale from erase function
+	p = find(pieces_, currentPos);
 
 	// update board
 	if (desiredPos.first == -1) // check king side castle 
@@ -447,7 +387,7 @@ void Board::make_move(const Position &currentPos, const Position &desiredPos)
 		// set pawn has moved
 		p->set_has_moved(true);
 	}
-	else if (desiredPos.first == -4 && color == Color::Black) // en passant
+	else if (desiredPos.first == -4) // en passant
 	{
 		// delete whatever piece was at desired pos and move piece to desired pos
 		PieceList::iterator it;
@@ -460,7 +400,7 @@ void Board::make_move(const Position &currentPos, const Position &desiredPos)
 		}
 		else
 		{
-			it = find(pieces_, make_pair(currentPos.first - 1, desiredPos.second));
+			it = find(pieces_, make_pair(currentPos.first + 1, desiredPos.second));
 			p->set_position(make_pair(currentPos.first + 1, desiredPos.second));
 		}
 
@@ -478,6 +418,13 @@ void Board::make_move(const Position &currentPos, const Position &desiredPos)
 		auto it = find(pieces_, currentPos);
 		pieces_.erase(it);
 
+		// find out if there was piece at the desired pos
+		it = find(pieces_, desiredPos);
+
+		if (it != pieces_.end()) // there is a piece at that pos
+			pieces_.erase(it);
+
+		// create queen
 		pieces_.push_front(Piece::queen(color, desiredPos, true));
 	}
 	else
@@ -533,7 +480,7 @@ int Board::end_game(const Color &color) const
 		int darkBishop = 0,
 			lightBishop = 0,
 			knight = 0;
-		for (const Piece &p : piecesWithMoves)
+		for (const Piece &p : pieces_)
 		{
 			char rep = p.get_rep();
 
@@ -580,8 +527,6 @@ double Board::favor() const
 	// get points from pieces for each player
 	double favor[2] = { 0, 0 }, positionFavor[2] = { 0, 0 };
 
-	// create set of tiles already counted for each player
-	unordered_set<Position, PairHash> positions[2];
 	for (const Piece &p : pieces_)
 	{
 		Color color = p.get_color();
@@ -623,11 +568,6 @@ double Board::favor() const
 
 		double value = 0;
 		for (const Position &move : moves)
-		{
-			// check if tile has already been counted
-			if (positions[int(color)].find(move) != positions[int(color)].end())
-				continue;
-
 			switch (move.first)
 			{
 			case -1: // king side castle
@@ -657,15 +597,12 @@ double Board::favor() const
 				break;
 			}
 
-			positions[int(color)].insert(move);
-		}
-
 		positionFavor[int(color)] += value;
 	}
 
 	// calculate final favor
-	return (favor[int(Color::White)] + (positionFavor[int(Color::White)] / totalGridPoints_)) -
-		(favor[int(Color::Black)] + (positionFavor[int(Color::Black)] / totalGridPoints_));
+	return (favor[int(Color::White)] + (positionFavor[int(Color::White)] / 10)) -
+		(favor[int(Color::Black)] + (positionFavor[int(Color::Black)] / 10));
 }
 
 ////////////////////////////////////////
@@ -675,6 +612,14 @@ Node Board::min_max_call(const Board &board, const Color &maximizingColor, const
 	// init alpha and beta
 	double alpha = -1 * std::numeric_limits<double>::max(),
 		beta = std::numeric_limits<double>::max();
+
+	// get number of threads available
+	int threads = std::thread::hardware_concurrency();
+	if (threads == 0) // couldnt find threads available
+		threads = 1;
+
+	// create vector for async functions
+	//vector<future<double>> minMaxAsync;
 
 	Node value(0, Position(), Position());
 	if (maximizingColor == Color::White)
@@ -701,9 +646,6 @@ Node Board::min_max_call(const Board &board, const Color &maximizingColor, const
 			
 					// set alpha
 					alpha = max(value.value_, alpha);
-
-					if (alpha >= beta)
-						return value;
 				}
 	}
 	else
@@ -727,13 +669,9 @@ Node Board::min_max_call(const Board &board, const Color &maximizingColor, const
 					value = min(value,
 								Node(min_max(update, depth - 1, alpha, beta, Color::White),
 									 p.get_position(), move));
-					cout << "min: " << value.value_ << ' ' << char(97 + value.current_.second) << value.current_.first + 1 << " -> "
-						<< char(97 + value.desired_.second) << value.desired_.first + 1 << endl << endl;
+
 					// set beta
 					beta = min(beta, value.value_);
-
-					if (alpha >= beta)
-						return value;
 				}
 	}
 
@@ -817,7 +755,7 @@ double Board::min_max(const Board &board, int depth, double alpha, double beta, 
 }
 
 ////////////////////////////////////////
-// play chess
+// play chess against basic cpu
 void Board::play(const Color &cpu, const int &depth)
 {
 	// color of player whos turn it is, begin with white
@@ -871,7 +809,7 @@ void Board::play(const Color &cpu, const int &depth)
 			int pieceNum, moveNum;
 			while (!selectionMade)
 			{
-				// output whites selection of moves
+				// output selection of moves
 				cout << "Pieces to move:" << endl << endl;
 				int i = 0;
 				for (const Piece &p : piecesWithMoves)

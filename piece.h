@@ -28,12 +28,12 @@ using std::max; using std::min; using std::find;
 const int SIZE = 8;
 
 // chess piece letter representation
-const char KING_REP = '&', QUEEN_REP = 'Q', KNIGHT_REP = 'K', BISHOP_REP = 'B',
-ROOK_REP = 'R', PAWN_REP = 'P', EMPTY_REP = 'O';
+const char KING_REP = 'K', QUEEN_REP = 'Q', KNIGHT_REP = 'N', BISHOP_REP = 'B',
+	ROOK_REP = 'R', PAWN_REP = 'P', EMPTY_REP = 'O';
 
 // piece points
 const double KING_POINTS = 0.0, QUEEN_POINTS = 8.0, KNIGHT_POINTS = 3.0, BISHOP_POINTS = 3.0,
-ROOK_POINTS = 5.0, PAWN_POINTS = 1.0, EMPTY_POINTS = 0.0;
+	ROOK_POINTS = 5.0, PAWN_POINTS = 1.0, EMPTY_POINTS = 0.0;
 
 // piece color enum, black and white MUST be listed first for use indexing arrays
 enum class Color { Black, White, Empty };
@@ -56,14 +56,6 @@ typedef list<Piece> PieceList;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// PAIR HASH
-class PairHash {
-public:
-	size_t operator()(const Position &p) const { return p.first * SIZE + p.second; }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
 // PIECE
 // note: king side castle is given by position(-1, -1)
 //		 while queen side castle is (-2, -2)
@@ -78,41 +70,41 @@ public:
 		color_(color), rep_(rep), points_(points), position_(p), hasMoved_(hasMoved) {}
 	Piece(const Piece &p) = default;
 
-	// defined methods
-	Position get_position() const { return position_; }
-	void set_position(const Position &p) { position_ = p; }
-	char get_rep() const { return rep_; }
-	Color get_color() const { return color_; }
-	void set_color(const Color &color) { color_ = color; }
-	double get_points() const { return points_; }
-	bool has_moved() const { return hasMoved_; }
-	void set_has_moved(const bool &hasMoved) { hasMoved_ = hasMoved; }
-	void print_moves() const;
-	vector<Position> get_possible_moves(const PieceList &pieces) const; // creates list of possible moves
-	void get_moves(Board &board, const vector<Position> &possibleMoves = vector<Position>()); // create list of moves that wont put king in check
-	vector<Position> move_list() const { return moves_; }
+	// methods
+	Position get_position () const { return position_; }
+	char get_rep          () const { return rep_; }
+	Color get_color       () const { return color_; }
+	double get_points     () const { return points_; }
+	bool has_moved        () const { return hasMoved_; }
+	void set_position  (const Position &p)    { position_ = p; }
+	void set_color     (const Color &color)   { color_ = color; }
+	void set_has_moved (const bool &hasMoved) { hasMoved_ = hasMoved; }
+	void print_moves                    () const;
+	vector<Position> get_possible_moves (const PieceList &pieces) const; // creates list of possible moves
+	void get_moves                      (Board &board, const vector<Position> &possibleMoves = vector<Position>()); // create list of moves that wont put king in check
+	vector<Position> move_list          () const { return moves_; }
 
 	// operators
 	Piece &operator=(const Piece &rhs);
 	bool operator==(const Piece &rhs) const; // only based on position
 
 	// piece creation for ease of use
-	static Piece king(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, KING_REP, KING_POINTS, p, hasMoved); }
-	static Piece queen(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, QUEEN_REP, QUEEN_POINTS, p, hasMoved); }
-	static Piece knight(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, KNIGHT_REP, KNIGHT_POINTS, p, hasMoved); }
-	static Piece bishop(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, BISHOP_REP, BISHOP_POINTS, p, hasMoved); }
-	static Piece rook(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, ROOK_REP, ROOK_POINTS, p, hasMoved); }
-	static Piece pawn(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, PAWN_REP, PAWN_POINTS, p, hasMoved); }
-	static Piece empty(const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, EMPTY_REP, EMPTY_POINTS, p, hasMoved); }
+	static Piece king   (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, KING_REP, KING_POINTS, p, hasMoved); }
+	static Piece queen  (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, QUEEN_REP, QUEEN_POINTS, p, hasMoved); }
+	static Piece knight (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, KNIGHT_REP, KNIGHT_POINTS, p, hasMoved); }
+	static Piece bishop (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, BISHOP_REP, BISHOP_POINTS, p, hasMoved); }
+	static Piece rook   (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, ROOK_REP, ROOK_POINTS, p, hasMoved); }
+	static Piece pawn   (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, PAWN_REP, PAWN_POINTS, p, hasMoved); }
+	static Piece empty  (const Color &c, const Position &p, const bool &hasMoved = false) { return Piece(c, EMPTY_REP, EMPTY_POINTS, p, hasMoved); }
 
 protected:
 	// helpers
-	vector<Position> king_get_possible_moves(const PieceList &pieces) const;
-	vector<Position> queen_get_possible_moves(const PieceList &pieces) const;
-	vector<Position> knight_get_possible_moves(const PieceList &pieces) const;
-	vector<Position> bishop_get_possible_moves(const PieceList &pieces) const;
-	vector<Position> rook_get_possible_moves(const PieceList &pieces) const;
-	vector<Position> pawn_get_possible_moves(const PieceList &pieces) const;
+	vector<Position> king_get_possible_moves   (const PieceList &pieces) const;
+	vector<Position> queen_get_possible_moves  (const PieceList &pieces) const;
+	vector<Position> knight_get_possible_moves (const PieceList &pieces) const;
+	vector<Position> bishop_get_possible_moves (const PieceList &pieces) const;
+	vector<Position> rook_get_possible_moves   (const PieceList &pieces) const;
+	vector<Position> pawn_get_possible_moves   (const PieceList &pieces) const;
 
 	// data
 	Position position_;

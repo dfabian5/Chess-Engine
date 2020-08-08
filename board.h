@@ -11,9 +11,12 @@
 #include "piece.h"
 #include <string>
 #include <fstream>
+#include <future>
+#include <thread>
 
 using std::string;
 using std::ofstream; using std::ifstream;
+using std::future;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -41,7 +44,7 @@ public:
 	Board(const Board &board);
 
 	// methods
-	PieceList get_pieces() const { return pieces_; }
+	const PieceList &get_pieces() const { return pieces_; }
 	void print() const;
 	void save_game(const string &game = "game.txt") const;
 	void load_game(const string &game = "game.txt");
@@ -53,6 +56,7 @@ public:
 	Node min_max_call(const Board &board, const Color &maximizingColor, const int &depth);
 	double min_max(const Board &board, int depth, double alpha, double beta, Color maximizingColor);
 	void play(const Color &cpu = Color::Empty, const int &depth = 3);
+	Position get_king_pos(const Color &c) const { return kingPos_[int(c)]; }
 
 	// friends
 	friend Piece;
